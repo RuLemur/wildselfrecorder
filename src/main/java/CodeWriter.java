@@ -11,11 +11,11 @@ import java.io.IOException;
 public class CodeWriter {
     private static Logger LOG = Logger.getLogger(CodeWriter.class);
 
-    public String writeClass() {
+    public File writeClass() {
         LOG.info("Начинаем писать класс Calculator");
         String className = "CalculatorImpl";
-        String path = "src/main/java/selfWriters";
-        String packageName = "selfWriters";
+        String path = "src/main/java";
+//        String packageName = "selfWriters";
         char[] operations = {'+', '-'};
 
         File classFolder = new File(path);
@@ -23,16 +23,16 @@ public class CodeWriter {
 
 
         StringBuilder javaString = new StringBuilder();
-        javaString.append("package " + packageName + ";\n\n");
+//        javaString.append("package " + packageName + ";\n\n");
 //        javaString.append(System.get) TODO: получить подпись автора кодом
 
         javaString.append("import interfaces.Calculator;\n");
-        javaString.append("public class CalculatorImpl implements Calculator{ \n");
-        javaString.append("public String calculate(int one, int two, char operation){\n");
-        javaString.append("return \"Hi! i'm worked\";");
-        javaString.append("}");
-        javaString.append("}");
-        String exitFile = "selfWriters." + className;
+        javaString.append(" public class CalculatorImpl implements Calculator{ \n");
+        javaString.append("     public String calculate(int one, int two, char operation){\n");
+        javaString.append("         return \"Hi! i'm worked\";");
+        javaString.append("     }");
+        javaString.append(" }");
+//        String exitFile = "selfWriters." + className;
         File fileNewClass = new File(classFolder.toString() + File.separator + className + ".java");
         if (fileNewClass.exists()) {
             LOG.info("Файл уже существует");
@@ -43,6 +43,6 @@ public class CodeWriter {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return exitFile;
+        return fileNewClass;
     }
 }
