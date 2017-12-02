@@ -5,7 +5,6 @@ import org.apache.log4j.PropertyConfigurator;
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -35,7 +34,8 @@ public class Main {
             LOG.info("Ошибка");
             e.printStackTrace();
         }
-
+        newFile.delete();
+        new File(newFile.getAbsoluteFile().toString().replace(".java",".class")).delete();
         System.out.println();
     }
 
@@ -75,10 +75,10 @@ public class Main {
             }
         } else {
             for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-                        System.out.format("Error on line %d in %s%n",
-                                diagnostic.getLineNumber(),
-                                diagnostic.getSource().toUri());
-                    }
+                System.out.format("Error on line %d in %s%n",
+                        diagnostic.getLineNumber(),
+                        diagnostic.getSource().toUri());
+            }
         }
         fileManager.close();
 
