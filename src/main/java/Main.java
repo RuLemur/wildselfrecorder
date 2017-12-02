@@ -34,50 +34,40 @@ public class Main {
             LOG.info("Ошибка");
             e.printStackTrace();
         }
-        newFile.delete();
-        new File(newFile.getAbsoluteFile().toString().replace(".java",".class")).delete();
-        System.out.println();
+//        newFile.delete();
+        new File(newFile.getAbsoluteFile().toString().replace(".java", ".class")).delete();
     }
 
     public static void compileClass(File newFilePath) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
 
         LOG.debug("Создаем экземпляр класса");
         //Создаем Java Compiler
-        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
+        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
 
         // This sets up the class path that the compiler will use.
         // I've added the .jar file that contains the DoStuff interface within in it...
-        List<String> optionList = new ArrayList<String>();
+        List<String> optionList = new ArrayList<>();
         optionList.add("-cp");
         optionList.add(System.getProperty("java.class.path") + ";dist/InlineCompiler.jar");
 
-        Iterable<? extends JavaFileObject> compilationUnit
-                = fileManager.getJavaFileObjectsFromFiles(Arrays.asList(newFilePath));
-        JavaCompiler.CompilationTask task = compiler.getTask(
-                null,
-                fileManager,
-                null,
-                optionList,
-                null,
-                compilationUnit);
+        Iterable<? extends JavaFileObject> compilationUnit = fileManager.getJavaFileObjectsFromFiles(Arrays.asList(newFilePath));
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, optionList, null, compilationUnit);
 
         if (task.call()) {
-            URLClassLoader classLoader = new URLClassLoader(new URL[]{
-                    new File("src/main/java").toURI().toURL()});
+            URLClassLoader classLoader = new URLClassLoader(new URL[]{new File("src/main/java").toURI().toURL()});
 
             Class<?> loadedClass = classLoader.loadClass("CalculatorImpl");
             Object obj = loadedClass.newInstance();
             if (obj instanceof Calculator) {
                 Calculator calculator = (Calculator) obj;
-                System.out.println(calculator.calculate(3, 4, '+'));
+                Integer result = calculator.calculate(12, 3, '+');
+                LOG.info("Результат: " + result != null ? result : "Невозмоожно вычислить");
             }
         } else {
             for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-                System.out.format("Error on line %d in %s%n",
-                        diagnostic.getLineNumber(),
-                        diagnostic.getSource().toUri());
+                LOG.warn("Error on line %d in %s%n" + diagnostic.getLineNumber() + diagnostic.getSource().toUri());
             }
         }
         fileManager.close();

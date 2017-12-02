@@ -16,7 +16,7 @@ public class CodeWriter {
         String className = "CalculatorImpl";
         String path = "src/main/java";
 //        String packageName = "selfWriters";
-        char[] operations = {'+', '-'};
+
 
         File classFolder = new File(path);
         classFolder.mkdir();
@@ -39,16 +39,25 @@ public class CodeWriter {
     }
 
     public String getNewCode() {
+        char[] operations = {'+', '-'};
         StringBuilder javaString = new StringBuilder();
-//        javaString.append("package " + this.getClass().getCanonicalName() + ";\n\n");
 //        javaString.append(System.get) TODO: получить подпись автора кодом
 
         javaString.append("import interfaces.Calculator;\n");
-        javaString.append(" public class CalculatorImpl implements Calculator{ \n");
-        javaString.append("     public String calculate(int one, int two, char operation){\n");
-        javaString.append("         return \"Hi! i'm worked\";");
-        javaString.append("     }");
-        javaString.append(" }");
+        javaString.append("public class CalculatorImpl implements Calculator{ \n");
+        javaString.append("    public Integer calculate(int one, int two, char operation){\n");
+        for (char operation : operations) {
+            for (int i = 0; i <= 20; i++) {
+                for (int j = 0; j <= 20; j++) {
+                    javaString.append("        if (one == " + i + " && two == " + j + ") {\n ");
+                    javaString.append("           return " + (i + j) + ";\n");
+                    javaString.append("        }\n");
+                }
+            }
+        }
+        javaString.append("        return null;\n");
+        javaString.append("    }\n");
+        javaString.append("}\n");
         return javaString.toString();
     }
 }

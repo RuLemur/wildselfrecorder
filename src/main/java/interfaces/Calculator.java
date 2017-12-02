@@ -5,5 +5,5 @@ package interfaces;
  * WildSelfRecorder
  */
 public interface Calculator {
-    String calculate(int one, int two, char operation);
+    Integer calculate(int one, int two, char operation);
 }
