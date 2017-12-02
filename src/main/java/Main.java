@@ -2,8 +2,15 @@ import interfaces.Calculator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
+import javax.tools.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by RuLemur on 22.11.2017 in 22:11.
@@ -20,28 +27,60 @@ public class Main {
         initLogger();
         LOG.info("Начинаем работать");
         CodeWriter codeWriter = new CodeWriter();
-        String newFilePath = codeWriter.writeClass();
-        try {
-            LOG.debug("Создаем экземпляр класса");
-            JavaCompiler systemJavaCompiler = ToolProvider.getSystemJavaCompiler();
-            systemJavaCompiler.run(null,null,null,"D:\\fanto\\IdeaProjects\\WildSelfRecorder\\src\\main\\java\\selfWriters\\CalculatorImpl.java");
-            Class c = Class.forName(newFilePath);
+        File newFile = codeWriter.writeClass();
 
-            Class[] interfaces = c.getInterfaces();
-            for (Class anInterface : interfaces) {
-                if (anInterface.getName().equals(Calculator.class.getName())) {
-                    Calculator calculator = (Calculator) c.newInstance();
-                    System.out.println(calculator.calculate(3, 4, '+'));
-                }
-            }
-        } catch (ClassNotFoundException e) {
-            LOG.error("Не найден класс по пути \"" + newFilePath + "\"");
-            e.printStackTrace();
-        } catch (IllegalAccessException | InstantiationException e) {
+        try {
+            compileClass(newFile);
+        } catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            LOG.info("Ошибка");
             e.printStackTrace();
         }
 
-
         System.out.println();
+    }
+
+    public static void compileClass(File newFilePath) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+
+        LOG.debug("Создаем экземпляр класса");
+        //Создаем Java Compiler
+        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+
+        // This sets up the class path that the compiler will use.
+        // I've added the .jar file that contains the DoStuff interface within in it...
+        List<String> optionList = new ArrayList<String>();
+        optionList.add("-cp");
+        optionList.add(System.getProperty("java.class.path") + ";dist/InlineCompiler.jar");
+
+        Iterable<? extends JavaFileObject> compilationUnit
+                = fileManager.getJavaFileObjectsFromFiles(Arrays.asList(newFilePath));
+        JavaCompiler.CompilationTask task = compiler.getTask(
+                null,
+                fileManager,
+                null,
+                optionList,
+                null,
+                compilationUnit);
+
+        if (task.call()) {
+            URLClassLoader classLoader = new URLClassLoader(new URL[]{
+                    new File("src/main/java").toURI().toURL()});
+
+            Class<?> loadedClass = classLoader.loadClass("CalculatorImpl");
+            Object obj = loadedClass.newInstance();
+            if (obj instanceof Calculator) {
+                Calculator calculator = (Calculator) obj;
+                System.out.println(calculator.calculate(3, 4, '+'));
+            }
+        } else {
+            for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+                        System.out.format("Error on line %d in %s%n",
+                                diagnostic.getLineNumber(),
+                                diagnostic.getSource().toUri());
+                    }
+        }
+        fileManager.close();
+
     }
 }
