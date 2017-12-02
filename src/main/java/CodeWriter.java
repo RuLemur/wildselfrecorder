@@ -15,23 +15,11 @@ public class CodeWriter {
         LOG.info("Начинаем писать класс Calculator");
         String className = "CalculatorImpl";
         String path = "src/main/java/selfWriters";
-        String packageName = "selfWriters";
         char[] operations = {'+', '-'};
 
         File classFolder = new File(path);
         classFolder.mkdir();
 
-
-        StringBuilder javaString = new StringBuilder();
-        javaString.append("package " + packageName + ";\n\n");
-//        javaString.append(System.get) TODO: получить подпись автора кодом
-
-        javaString.append("import interfaces.Calculator;\n");
-        javaString.append("public class CalculatorImpl implements Calculator{ \n");
-        javaString.append("public String calculate(int one, int two, char operation){\n");
-        javaString.append("return \"Hi! i'm worked\";");
-        javaString.append("}");
-        javaString.append("}");
         String exitFile = "selfWriters." + className;
         File fileNewClass = new File(classFolder.toString() + File.separator + className + ".java");
         if (fileNewClass.exists()) {
@@ -39,10 +27,24 @@ public class CodeWriter {
         }
         try (FileWriter fileWriter = new FileWriter(fileNewClass)) {
 
-            fileWriter.write(javaString.toString());
+            fileWriter.write(getNewCode());
         } catch (IOException e) {
             e.printStackTrace();
         }
         return exitFile;
+    }
+
+    public String getNewCode() {
+        StringBuilder javaString = new StringBuilder();
+        javaString.append("package " + this.getClass().getCanonicalName() + ";\n\n");
+//        javaString.append(System.get) TODO: получить подпись автора кодом
+
+        javaString.append("import interfaces.Calculator;\n");
+        javaString.append("public class CalculatorImpl implements Calculator{ \n");
+        javaString.append("     public String calculate(int one, int two, char operation){\n");
+        javaString.append("         return \"Hi! i'm worked\";");
+        javaString.append("     }");
+        javaString.append("}");
+        return javaString.toString();
     }
 }
