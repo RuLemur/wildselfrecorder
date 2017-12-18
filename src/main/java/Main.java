@@ -62,7 +62,7 @@ public class Main {
             Object obj = loadedClass.newInstance();
             if (obj instanceof Calculator) {
                 Calculator calculator = (Calculator) obj;
-                Integer result = calculator.calculate(12, 3, '+');
+                Integer result = calculator.calculateSum(56, 75);
                 LOG.info("Результат: " + result != null ? result : "Невозмоожно вычислить");
             }
         } else {
