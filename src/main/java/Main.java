@@ -26,19 +26,19 @@ public class Main {
         initLogger();
         LOG.info("Начинаем работать");
         CodeWriter codeWriter = new CodeWriter();
-        File newFile = codeWriter.writeClass();
+        File newFile = codeWriter.writeClass(CodeWriter.CALCULATOR);
 
         try {
-            compileClass(newFile);
+            compileClass(newFile,"CalculatorImpl0");
         } catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            LOG.info("Ошибка");
+            LOG.error("Ошибка компиляции файла");
             e.printStackTrace();
         }
 //        newFile.delete();
-        new File(newFile.getAbsoluteFile().toString().replace(".java", ".class")).delete();
+//        new File(newFile.getAbsoluteFile().toString().replace(".java", ".class")).delete();
     }
 
-    public static void compileClass(File newFilePath) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public static Object compileClass(File newFilePath, String compiledClassName) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
 
         LOG.debug("Создаем экземпляр класса");
         //Создаем Java Compiler
@@ -54,23 +54,19 @@ public class Main {
 
         Iterable<? extends JavaFileObject> compilationUnit = fileManager.getJavaFileObjectsFromFiles(Arrays.asList(newFilePath));
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, optionList, null, compilationUnit);
-
+        Object obj = null;
         if (task.call()) {
             URLClassLoader classLoader = new URLClassLoader(new URL[]{new File("src/main/java").toURI().toURL()});
 
-            Class<?> loadedClass = classLoader.loadClass("CalculatorImpl");
-            Object obj = loadedClass.newInstance();
-            if (obj instanceof Calculator) {
-                Calculator calculator = (Calculator) obj;
-                Integer result = calculator.calculateSum(56, 75);
-                LOG.info("Результат: " + result != null ? result : "Невозмоожно вычислить");
-            }
+            Class<?> loadedClass = classLoader.loadClass(compiledClassName);
+            obj = loadedClass.newInstance();
         } else {
             for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
                 LOG.warn("Error on line %d in %s%n" + diagnostic.getLineNumber() + diagnostic.getSource().toUri());
             }
         }
         fileManager.close();
+        return obj;
 
     }
 }
