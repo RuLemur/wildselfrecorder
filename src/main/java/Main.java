@@ -26,12 +26,14 @@ public class Main {
         initLogger();
         LOG.info("Начинаем работать");
         CodeWriter codeWriter = new CodeWriter();
-        File newFile = codeWriter.writeClass(CodeWriter.CALCULATOR);
+        String className = CodeWriter.CODEWRITER + "0";
+        File newFile = codeWriter.writeClass(className);
 
         try {
-            compileClass(newFile,"CalculatorImpl0");
+            LOG.info("Запускаем компиляцию класса \"" + className + "\"");
+            compileClass(newFile, className);
         } catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            LOG.error("Ошибка компиляции файла");
+            LOG.error("Ошибка компиляции файла \"" + className + "\"");
             e.printStackTrace();
         }
 //        newFile.delete();
