@@ -1,6 +1,8 @@
 import interfaces.Calculator;
+import interfaces.CodeCompiler;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import sun.rmi.runtime.Log;
 
 import javax.tools.*;
 import java.io.File;
@@ -24,25 +26,31 @@ public class Main {
 
     public static void main(String[] args) {
         initLogger();
-        LOG.info("Начинаем работать");
+        LOG.info("Начало работы рекурсии");
+        LOG.debug("Создаем первый класс с id:0");
         CodeWriter codeWriter = new CodeWriter();
         String className = CodeWriter.CODEWRITER + "0";
         File newFile = codeWriter.writeClass(className);
 
         try {
             LOG.info("Запускаем компиляцию класса \"" + className + "\"");
-            compileClass(newFile, className);
+            Object compiledClass = compileClass(newFile, className);
+            if(compiledClass instanceof CodeCompiler){
+                LOG.debug("Запрашиваем создание класса с id: 1");
+                ((CodeCompiler) compiledClass).createNext(1);
+            }
         } catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             LOG.error("Ошибка компиляции файла \"" + className + "\"");
             e.printStackTrace();
         }
-//        newFile.delete();
-//        new File(newFile.getAbsoluteFile().toString().replace(".java", ".class")).delete();
+        LOG.info("Удаляем созданные файлы (" + className + ")");
+        newFile.delete();
+        new File(newFile.getAbsoluteFile().toString().replace(".java", ".class")).delete();
     }
 
-    public static Object compileClass(File newFilePath, String compiledClassName) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public static Object compileClass(File newFilePath, String className) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
 
-        LOG.debug("Создаем экземпляр класса");
+        LOG.info("Начало работы Создателя класса " + className);
         //Создаем Java Compiler
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -50,17 +58,22 @@ public class Main {
 
         // This sets up the class path that the compiler will use.
         // I've added the .jar file that contains the DoStuff interface within in it...
+        LOG.debug("Прописываем параметры для класса " + className);
         List<String> optionList = new ArrayList<>();
         optionList.add("-cp");
         optionList.add(System.getProperty("java.class.path") + ";dist/InlineCompiler.jar");
 
+        LOG.debug("Создаем объект компиляции " + className);
         Iterable<? extends JavaFileObject> compilationUnit = fileManager.getJavaFileObjectsFromFiles(Arrays.asList(newFilePath));
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, optionList, null, compilationUnit);
+
+        LOG.debug("Производим загрузку класса " + className);
         Object obj = null;
         if (task.call()) {
             URLClassLoader classLoader = new URLClassLoader(new URL[]{new File("src/main/java").toURI().toURL()});
-
-            Class<?> loadedClass = classLoader.loadClass(compiledClassName);
+            LOG.info("Закончили создание класса " + className);
+            Class<?> loadedClass = classLoader.loadClass(className);
+            LOG.debug("Создаем инстанс нового класса " + className);
             obj = loadedClass.newInstance();
         } else {
             for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
